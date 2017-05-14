@@ -12,5 +12,3 @@ app.get("/sayHello", function (request, response) {
 
 app.listen(port);
 console.log("Listening on port ", port);
-
-require("cf-deployment-tracker-client").track();
