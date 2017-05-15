@@ -1,5 +1,6 @@
 ---
 applications:
-- name:    hello-node
-  host:    hello-node
-  memory:  128M
+- name: approval-tool-api
+  routes:
+  - route: approval-tool.mybluemix.net/api
+  memory:  256M
