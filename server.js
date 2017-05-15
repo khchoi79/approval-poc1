@@ -16,26 +16,36 @@ var cors = require('cors');
 app.use(bodyParser.json());
 app.use(cors());
 
-var approvals={}
+var approvals = {};
 
-app.post('/api/v1/toolchain/:toolchain_id/:pipeline_id', function(req, res) {
-  var data = {
-    'toolchain_id': req.params.toolchain_id,
-    'pipeline_id': req.params.pipeline_id,
-    'input_rev': req.body.input_rev,
-    'body': req.body
-  }
-  console.log(data);
-  var input_rev = req.body.input_rev;
-  var result = {};
-  if (input_rev in approvals) {
-    result['status'] = approvals[input_rev];
-  } else {
-    // create new approval record
-    approvals[input_rev] = 'pending';
-    result['status'] = 'created';
-  }
-  res.send(result);
+function get_approval(artifact_id) {
+  return approvals[artifact_id] || {'status': 'none'};
+}
+
+function add_approval(data) {
+  approvals[data.artifact_id] = data;
+}
+
+app.get('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifact_id', function(req, res) {
+  res.send(get_approval(req.params.artifact_id));
+});
+
+app.post('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifact_id', function(req, res) {
+  // TODO: Cloudant for database
+  // create new approval record
+  add_approval(Object.assign({}, req.params, req.body, {
+    'status': 'pending'
+  }));
+  res.send(get_approval(req.params.artifact_id));
+});
+
+app.post('/api/v1/approvals/:artifact_id', function(req, res) {
+  approvals[req.params.artifact_id]['status'] = req.body.status;
+  res.json({'status': 'ok'});
+});
+
+app.get('/api/v1/approvals', function(req, res) {
+  res.json(approvals);
 });
 
 app.listen(port);
