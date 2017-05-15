@@ -11,8 +11,10 @@ app.get("/sayHello", function (request, response) {
 });
 
 var bodyParser = require('body-parser');
+var cors = require('cors');
 
 app.use(bodyParser.json());
+app.use(cors());
 
 var approvals={}
 
