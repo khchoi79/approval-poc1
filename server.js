@@ -20,11 +20,11 @@ app.post('/api/v1/toolchain/:toolchain_id/:pipeline_id', function(req, res) {
   var data = {
     'toolchain_id': req.params.toolchain_id,
     'pipeline_id': req.params.pipeline_id,
-    'input_rev': req.params.input_rev,
+    'input_rev': req.body.input_rev,
     'body': req.body
   }
   console.log(data);
-  var input_rev = req.params.input_rev;
+  var input_rev = req.body.input_rev;
   var result = {};
   if (input_rev in approvals) {
     result['status'] = approvals[input_rev];
