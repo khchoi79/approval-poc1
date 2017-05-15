@@ -30,6 +30,10 @@ app.get('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifact_id', f
   res.send(get_approval(req.params.artifact_id));
 });
 
+app.get('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifact_id/status', function(req, res) {
+  res.send(get_approval(req.params.artifact_id).status);
+});
+
 app.post('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifact_id', function(req, res) {
   // TODO: Cloudant for database
   // create new approval record
