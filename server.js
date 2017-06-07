@@ -50,5 +50,7 @@ app.get('/api/v1/approvals', function (req, res) {
   res.json(approvals)
 })
 
+app.use('/api/v1', require('./routes/api_v1'))
+
 app.listen(port)
 console.log('Listening on port ', port)
