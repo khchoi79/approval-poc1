@@ -1,59 +1,54 @@
-var express = require("express"),
-    app = express();
+var express = require('express')
+var app = express()
+var path = require('path')
 
-var port = process.env.PORT || 8080;
+var port = process.env.PORT || 8080
+app.use(express.static(path.join(__dirname, '/public')))
 
-app.use(express.static(__dirname + '/public'));
+var bodyParser = require('body-parser')
+var cors = require('cors')
 
-app.get("/sayHello", function (request, response) {
-  var user_name = request.query.user_name;
-  response.end("Hello " + user_name + "!");
-});
+app.use(bodyParser.json())
+app.use(cors())
 
-var bodyParser = require('body-parser');
-var cors = require('cors');
+var approvals = {}
 
-app.use(bodyParser.json());
-app.use(cors());
-
-var approvals = {};
-
-function get_approval(artifact_id) {
-  return approvals[artifact_id] || {'status': 'none'};
+function getApproval (artifactId) {
+  return approvals[artifactId] || {'status': 'none'}
 }
 
-function add_approval(data) {
-  approvals[data.artifact_id] = data;
+function addApproval (data) {
+  approvals[data.artifactId] = data
 }
 
-function update_approval(artifact_id, new_status) {
-  approvals[artifact_id]['status'] = new_status;
+function updateApproval (artifactId, newStatus) {
+  approvals[artifactId]['status'] = newStatus
 }
-app.get('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifact_id', function(req, res) {
-  res.send(get_approval(req.params.artifact_id));
-});
+app.get('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifactId', function (req, res) {
+  res.send(getApproval(req.params.artifactId))
+})
 
-app.get('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifact_id/status', function(req, res) {
-  res.send(get_approval(req.params.artifact_id).status);
-});
+app.get('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifactId/status', function (req, res) {
+  res.send(getApproval(req.params.artifactId).status)
+})
 
-app.post('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifact_id', function(req, res) {
+app.post('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifactId', function (req, res) {
   // TODO: Cloudant for database
   // create new approval record
-  add_approval(Object.assign({}, req.params, req.body, {
+  addApproval(Object.assign({}, req.params, req.body, {
     'status': 'pending'
-  }));
-  res.send(get_approval(req.params.artifact_id));
-});
+  }))
+  res.send(getApproval(req.params.artifactId))
+})
 
-app.post('/api/v1/approvals/:artifact_id', function(req, res) {
-  update_approval(req.params.artifact_id, req.body.status);
-  res.json({'status': 'ok'});
-});
+app.post('/api/v1/approvals/:artifactId', function (req, res) {
+  updateApproval(req.params.artifactId, req.body.status)
+  res.json({'status': 'ok'})
+})
 
-app.get('/api/v1/approvals', function(req, res) {
-  res.json(approvals);
-});
+app.get('/api/v1/approvals', function (req, res) {
+  res.json(approvals)
+})
 
-app.listen(port);
-console.log("Listening on port ", port);
+app.listen(port)
+console.log('Listening on port ', port)
