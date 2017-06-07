@@ -26,6 +26,9 @@ function add_approval(data) {
   approvals[data.artifact_id] = data;
 }
 
+function update_approval(artifact_id, new_status) {
+  approvals[artifact_id]['status'] = new_status;
+}
 app.get('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifact_id', function(req, res) {
   res.send(get_approval(req.params.artifact_id));
 });
@@ -44,7 +47,7 @@ app.post('/api/v1/approvals/:toolchain_id/:pipeline_id/:stage_id/:artifact_id', 
 });
 
 app.post('/api/v1/approvals/:artifact_id', function(req, res) {
-  approvals[req.params.artifact_id]['status'] = req.body.status;
+  update_approval(req.params.artifact_id, req.body.status);
   res.json({'status': 'ok'});
 });
 
