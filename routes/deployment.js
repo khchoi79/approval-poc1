@@ -1,25 +1,35 @@
 var pipelineClient = require('../utils/pipelineClient')
 
+var log = require('../utils/logger')('deployment')
+
 var stages = {}
 var plan = {}
 
 function addPlan (pipelineId, stageId, data) {
+  log.debug('addPlan', pipelineId, stageId, data)
   return new Promise(function (resolve, reject) {
     // Get inputs for the stage
     pipelineClient.getInputs(pipelineId, stageId)
     .then(function (result) {
       if (result.length === 0) {
-        reject(new Error('No input for stage'))
+        let message = 'No input for stage'
+        log.error(message, stageId)
+        reject(new Error(message))
       }
       let inputId = result[0].id
+      if (!stageId.hasOwnProperty(stageId)) {
+        stages[stageId] = {}
+      }
       stages[stageId].inputId = inputId
       data.inputId = inputId
+      log.debug('got Inputs', inputId, data, result)
     })
     .then(function () {
       let args = {
         inputId: data.inputId,
         revisionId: data.revisionId
       }
+      log.debug('runStage with', args)
       return pipelineClient.runStage(pipelineId, stageId, args)
     })
     .then(function (result) {
@@ -33,7 +43,7 @@ function addPlan (pipelineId, stageId, data) {
         plan[stageId] = {}
       }
       plan[stageId][result.number] = detail
-      resolve(result)
+      resolve(detail)
     })
     .catch(function (err) {
       reject(err)

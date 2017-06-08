@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "dependencies": {
     "body-parser": "^1.17.1",
+    "bunyan": "^1.8.10",
     "cf-deployment-tracker-client": "*",
     "commander": "^2.6.0",
     "cors": "^2.8.3",
