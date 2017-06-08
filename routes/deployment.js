@@ -1,6 +1,6 @@
 var pipelineClient = require('../utils/pipelineClient')
 
-var inputs = {}
+var stages = {}
 var plan = {}
 
 function addPlan (pipelineId, stageId, data) {
@@ -12,7 +12,7 @@ function addPlan (pipelineId, stageId, data) {
         reject(new Error('No input for stage'))
       }
       let inputId = result[0].id
-      inputs[stageId] = inputId
+      stages[stageId].inputId = inputId
       data.inputId = inputId
     })
     .then(function () {
@@ -50,9 +50,26 @@ exports.createDeployment = function (req, res) {
   })
 }
 
-exports.getNodes = function (req, res) {
+exports.getTargetNodes = function (req, res) {
+  let stageId = req.params.stageId
   try {
-    res.json(plan[req.params.stageId][req.params.number].nodes)
+    res.json(plan[stageId][req.params.number].nodes)
+  } catch (err) {
+    if (!stages.hasOwnProperty(stageId)) {
+      stages[stageId] = {
+        pipelineId: req.params.pipelineId,
+        serviceName: req.query.service
+      }
+      res.status(201).json({result: 'Stage data created'})
+    } else {
+      res.status(404).json({error: 'Data not found'})
+    }
+  }
+}
+
+exports.getStage = function (req, res) {
+  try {
+    res.json(stages[req.params.stageId])
   } catch (err) {
     res.status(404).json({error: 'Data not found'})
   }

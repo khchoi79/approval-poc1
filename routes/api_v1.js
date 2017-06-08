@@ -3,7 +3,8 @@ var router = express.Router()
 
 var deployment = require('./deployment')
 
-router.post('/deployment/:pipelineId/:stageId', deployment.createDeployment)
-router.get('/deployment/:pipelineId/:stageId/:number/nodes', deployment.getNodes)
+router.post('/deployment/:pipelineId/stages/:stageId/builds', deployment.createDeployment)
+router.get('/deployment/:pipelineId/stages/:stageId/builds/:number/nodes', deployment.getTargetNodes)
+router.get('/deployment/:pipelineId/stages/:stageId', deployment.getStage)
 
 module.exports = router
