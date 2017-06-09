@@ -18,7 +18,7 @@ function addPlan (pipelineId, stageId, data) {
         reject(new Error(message))
       }
       let inputId = result[0].id
-      if (!stageId.hasOwnProperty(stageId)) {
+      if (!stages.hasOwnProperty(stageId)) {
         stages[stageId] = {}
       }
       stages[stageId].inputId = inputId
@@ -67,14 +67,15 @@ exports.getTargetNodes = function (req, res) {
     res.json(plan[stageId][req.params.number].nodes)
   } catch (err) {
     if (!stages.hasOwnProperty(stageId)) {
-      stages[stageId] = {
-        pipelineId: req.params.pipelineId,
-        serviceName: req.query.service
-      }
+      stages[stageId] = {}
       res.status(201).json({result: 'Stage data created'})
     } else {
       res.status(404).json({error: 'Data not found'})
     }
+  }
+  if (!stages[stageId].hasOwnProperty('serviceName')) {
+    stages[stageId].pipelineId = req.params.pipelineId
+    stages[stageId].serviceName = req.query.service
   }
 }
 
