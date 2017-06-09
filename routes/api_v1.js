@@ -7,4 +7,6 @@ router.post('/deployment/:pipelineId/stages/:stageId/builds', deployment.createD
 router.get('/deployment/:pipelineId/stages/:stageId/builds/:number/nodes', deployment.getTargetNodes)
 router.get('/deployment/:pipelineId/stages/:stageId', deployment.getStage)
 
+router.put('/nodes/:nodeName', deployment.updateNode)
+
 module.exports = router

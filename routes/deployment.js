@@ -1,4 +1,5 @@
 var pipelineClient = require('../utils/pipelineClient')
+var consulClient = require('../utils/consulClient')
 
 var log = require('../utils/logger')('deployment')
 
@@ -83,4 +84,15 @@ exports.getStage = function (req, res) {
   } catch (err) {
     res.status(404).json({error: 'Data not found'})
   }
+}
+
+exports.updateNode = function (req, res) {
+  log.debug('updateNode', req.params.nodeName, req.body)
+  consulClient.updateNodeMeta(req.params.nodeName, req.body)
+  .then((data) => {
+    res.status(200).json({result: data})
+  }).catch((err) => {
+    log.error('updateNode', err)
+    res.status(500).json({error: err})
+  })
 }
