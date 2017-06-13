@@ -59,6 +59,16 @@ exports.createDeployment = function (req, res) {
   })
 }
 
+exports.getDeployments = function (req, res) {
+  Plan.find()
+  .sort('-number')
+  .then(docs => res.json(docs))
+  .catch(err => {
+    log.error('getDeployments', err)
+    res.status(500).json({error: err})
+  })
+}
+
 exports.getTargetNodes = function (req, res) {
   let stageId = req.params.stageId
   try {
