@@ -8,8 +8,10 @@ module.exports = function (url, dbName) {
     url = url.replace(/,.*\//, '/')
   }
 
-  mongoose.connect(url)
-  .then(res => log.info('Database connected'))
-  .catch(err => log.error('Failed to connect database', err))
+  if (mongoose.connection.readyState === 0) {
+    mongoose.connect(url)
+    .then(res => log.info('Database connected'))
+    .catch(err => log.error('Failed to connect database', err))
+  }
   return mongoose
 }
