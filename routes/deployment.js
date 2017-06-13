@@ -1,6 +1,8 @@
 var pipelineClient = require('../utils/pipelineClient')
 var consulClient = require('../utils/consulClient')
 
+var Plan = require('../databases/models/deploy-plan')
+
 var log = require('../utils/logger')('deployment')
 
 var stages = {}
@@ -40,15 +42,11 @@ function addPlan (pipelineId, stageId, data) {
       detail.successful = result.successful
       detail.running = result.running
 
-      if (!plan.hasOwnProperty(stageId)) {
-        plan[stageId] = {}
-      }
-      plan[stageId][result.number] = detail
-      resolve(detail)
+      let plan = new Plan(detail)
+      return plan.save()
     })
-    .catch(function (err) {
-      reject(err)
-    })
+    .then(saved => resolve(saved))
+    .catch(err => reject(err))
   })
 }
 
