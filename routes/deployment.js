@@ -2,56 +2,66 @@ var pipelineClient = require('../utils/pipelineClient')
 var consulClient = require('../utils/consulClient')
 
 var Plan = require('../databases/models/deploy-plan')
+var Service = require('../databases/models/service-map')
 
 var log = require('../utils/logger')('deployment')
 
-var stages = {}
-var plan = {}
+function getInputId (doc) {
+  return pipelineClient.getInputs(doc.pipelineId, doc.stageId)
+  .then(function (result) {
+    if (result.length === 0) {
+      let message = 'No input for stage'
+      log.error(message, doc.stageId)
+      throw Error(message)
+    }
+    let inputId = result[0].id
+    doc.inputId = inputId
+    doc.save()
+    .catch(err => {
+      log.error('getInputId: Failed to save service map info with input', err)
+    })
+    log.debug('got Inputs', inputId, result)
+    return inputId
+  })
+  .catch(err => {
+    log.error(`getInputId: Cannot get input`, doc)
+    throw err
+  })
+}
 
-function addPlan (pipelineId, stageId, data) {
-  log.debug('addPlan', pipelineId, stageId, data)
-  return new Promise(function (resolve, reject) {
-    // Get inputs for the stage
-    pipelineClient.getInputs(pipelineId, stageId)
-    .then(function (result) {
-      if (result.length === 0) {
-        let message = 'No input for stage'
-        log.error(message, stageId)
-        reject(new Error(message))
-      }
-      let inputId = result[0].id
-      if (!stages.hasOwnProperty(stageId)) {
-        stages[stageId] = {}
-      }
-      stages[stageId].inputId = inputId
-      data.inputId = inputId
-      log.debug('got Inputs', inputId, data, result)
-    })
-    .then(function () {
-      let args = {
-        inputId: data.inputId,
-        revisionId: data.revisionId
-      }
-      log.debug('runStage with', args)
-      return pipelineClient.runStage(pipelineId, stageId, args)
-    })
-    .then(function (result) {
-      let detail = Object.assign({}, data)
-      detail.number = result.number
-      detail.status = result.status
-      detail.successful = result.successful
-      detail.running = result.running
+function addPlan (params, data) {
+  log.debug('addPlan', params, data)
+  // Get inputs for the stage
+  return Service.findOne(params)
+  .then(function (doc) {
+    let args = {
+      inputId: doc.inputId,
+      revisionId: data.revisionId
+    }
+    log.debug('runStage with', args)
+    // Execute stage and get results
+    return pipelineClient.runStage(params.pipelineId, params.stageId, args)
+  })
+  .catch(err => {
+    log.error(`addPlan: Cannot get service map`, params, err)
+  })
+  .then(function (result) {
+    let detail = Object.assign({}, data)
+    detail.number = result.number
+    detail.status = result.status
+    detail.successful = result.successful
+    detail.running = result.running
 
-      let plan = new Plan(detail)
-      return plan.save()
-    })
-    .then(saved => resolve(saved))
-    .catch(err => reject(err))
+    let plan = new Plan(detail)
+    return plan.save()
+  })
+  .catch(err => {
+    log.error(`addPlan: Failed to run stage`, params, err)
   })
 }
 
 exports.createDeployment = function (req, res) {
-  addPlan(req.params.pipelineId, req.params.stageId, req.body)
+  addPlan(req.params, req.body)
   .then(function (result) {
     res.json(result)
   }, function (err) {
@@ -70,29 +80,61 @@ exports.getDeployments = function (req, res) {
 }
 
 exports.getTargetNodes = function (req, res) {
-  let stageId = req.params.stageId
-  try {
-    res.json(plan[stageId][req.params.number].nodes)
-  } catch (err) {
-    if (!stages.hasOwnProperty(stageId)) {
-      stages[stageId] = {}
-      res.status(201).json({result: 'Stage data created'})
+  Plan.findOne(req.params)
+  .then(doc => {
+    if (doc) {
+      res.json(doc.nodes)
     } else {
-      res.status(404).json({error: 'Data not found'})
+      Service.findOne({
+        pipelineId: req.params.pipelineId,
+        stageId: req.params.stageId
+      })
+      .then(doc => {
+        if (doc) {
+          // TODO: check req.query.service === doc.serviceName
+          res.status(404).json({error: 'Data not found'})
+        } else {
+          // create new stage / service information
+          let detail = Object.assign({}, req.params)
+          detail.serviceName = req.query.service
+          let service = new Service(detail)
+          service.save()
+          .then(saved => {
+            res.status(201).json({result: 'Stage data created'})
+          })
+        }
+      })
     }
-  }
-  if (!stages[stageId].hasOwnProperty('serviceName')) {
-    stages[stageId].pipelineId = req.params.pipelineId
-    stages[stageId].serviceName = req.query.service
-  }
+  })
+  .catch(err => {
+    log.error('getDeployments', err)
+    res.status(500).json({error: err})
+  })
 }
 
 exports.getStage = function (req, res) {
-  try {
+  Service.findOne(req.params)
+  .then(doc => {
+    if (doc) {
+      res.json(doc)
+      if (!doc.inputId) {
+        getInputId(doc)
+      }
+    } else {
+      res.status(404).json({error: 'Stage not found'})
+    }
+  })
+  .catch(err => {
+    log.error('getStage', err)
+    res.status(500).json({error: err})
+  })
+  /*
+try {
     res.json(stages[req.params.stageId])
   } catch (err) {
     res.status(404).json({error: 'Data not found'})
   }
+  */
 }
 
 exports.updateNode = function (req, res) {
