@@ -30,6 +30,18 @@ exports.getInputs = function (pipelineId, stageId) {
   return request(options)
 }
 
+exports.getInputRevision = function (pipelineId, stageId, inputId, revisionId) {
+  const options = {
+    uri: `${PIPELINE_API}/${pipelineId}/stages/${stageId}/inputs/${inputId}/revisions/${revisionId}`,
+    method: 'GET',
+    json: true,
+    headers: {
+      Authorization: AUTH
+    }
+  }
+  return request(options)
+}
+
 exports.getExecutionsByArtifactId = function (pipelineId, stageId, artifactId) {
   const options = {
     uri: `${PIPELINE_API}/${pipelineId}/stages/${stageId}/executions?jobExecutionId=${artifactId}`,

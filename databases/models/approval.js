@@ -1,6 +1,17 @@
 let db = require('../../databases')('approval')
 let inputSchema = require('./input-schema')
 
+let revisionSchema = db.Schema({
+  id: String,
+  message: String,
+  number: Number,
+  timestamp: Number,
+  url: String,
+  userEmail: String,
+  userId: String,
+  userName: String
+})
+
 let schema = db.Schema({
   inputRev: String,
   artifactId: String,
@@ -16,6 +27,7 @@ let schema = db.Schema({
   inputs: [inputSchema],
   scmInputs: [inputSchema],
   revisionId: String,
+  inputRevision: revisionSchema,
   scmUrl: String,
   metadata: {
     createdAt: Date,

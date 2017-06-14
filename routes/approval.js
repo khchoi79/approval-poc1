@@ -51,19 +51,34 @@ function getInputs (doc) {
   })
   // get scm input
   .then(result => {
-    if (result.length === 0) {
-      log.error('getInputs: cannot find inputs', result)
-    } else {
-      if (result[0].type === 'scm') {
-        doc.scmInputs = result
-        log.trace('SCM inputs', result)
+    if (result) {
+      if (result.length === 0) {
+        log.error('getInputs: cannot find inputs', result)
       } else {
-        log.debug('getInputs: no scm input found', result)
+        if (result[0].type === 'scm') {
+          doc.scmInputs = result
+          log.trace('SCM inputs', result)
+          return pipelineClient.getInputRevision(
+              doc.pipelineId, doc.inputs[0].stageId,
+              doc.scmInputs[0].id, doc.revisionId)
+        } else {
+          log.debug('getInputs: no scm input found', result)
+        }
       }
     }
   })
   .catch(err => {
     log.error('getInputs: error on finding prev inputs', err)
+  })
+  // get scm input
+  .then(result => {
+    if (result) {
+      doc.inputRevision = result
+      log.trace('inputRevision', result)
+    }
+  })
+  .catch(err => {
+    log.error('getInputRevision: error on finding revision', doc, err)
   })
   // save doc
   .then(() => {
