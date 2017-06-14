@@ -11,17 +11,19 @@ function getInputId (doc) {
   .then(function (result) {
     if (result.length === 0) {
       let message = 'No input for stage'
-      log.error(message, doc.stageId)
+      log.error(message, doc.pipelineId, doc.stageId)
       throw Error(message)
     }
-    let inputId = result[0].id
-    doc.inputId = inputId
+    doc.inputs = result
     doc.save()
+    .then(saved => {
+      log.debug('got Inputs', doc.inputs, result)
+      return doc.inputs
+    })
     .catch(err => {
       log.error('getInputId: Failed to save service map info with input', err)
+      throw err
     })
-    log.debug('got Inputs', inputId, result)
-    return inputId
   })
   .catch(err => {
     log.error(`getInputId: Cannot get input`, doc)
@@ -35,7 +37,7 @@ function addPlan (params, data) {
   return Service.findOne(params)
   .then(function (doc) {
     let args = {
-      inputId: doc.inputId,
+      inputId: doc.inputs[0].id,
       revisionId: data.revisionId
     }
     log.debug('runStage with', args)
@@ -101,6 +103,7 @@ exports.getTargetNodes = function (req, res) {
           service.save()
           .then(saved => {
             res.status(201).json({result: 'Stage data created'})
+            getInputId(saved)
           })
         }
       })
@@ -117,7 +120,7 @@ exports.getStage = function (req, res) {
   .then(doc => {
     if (doc) {
       res.json(doc)
-      if (!doc.inputId) {
+      if (!doc.inputs) {
         getInputId(doc)
       }
     } else {
