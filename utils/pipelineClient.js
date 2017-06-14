@@ -29,3 +29,15 @@ exports.getInputs = function (pipelineId, stageId) {
   }
   return request(options)
 }
+
+exports.getExecutionsByArtifactId = function (pipelineId, stageId, artifactId) {
+  const options = {
+    uri: `${PIPELINE_API}/${pipelineId}/stages/${stageId}/executions?jobExecutionId=${artifactId}`,
+    method: 'GET',
+    json: true,
+    headers: {
+      Authorization: AUTH
+    }
+  }
+  return request(options)
+}

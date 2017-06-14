@@ -1,3 +1,4 @@
+var pipelineClient = require('../utils/pipelineClient')
 var Approval = require('../databases/models/approval')
 
 var log = require('../utils/logger')('approval')
@@ -14,6 +15,69 @@ function _getApproval (params) {
   })
   .catch(err => {
     log.error('Cannot find approval', err)
+    throw err
+  })
+}
+
+function getInputs (doc) {
+  return pipelineClient.getInputs(doc.pipelineId, doc.stageId)
+  // get job input
+  .then(result => {
+    if (result.length === 0) {
+      let message = 'No input for stage'
+      throw Error(message)
+    }
+    doc.inputs = result
+    log.trace('Inputs', doc.inputs)
+    return pipelineClient.getExecutionsByArtifactId(
+        doc.pipelineId, result[0].stageId, doc.artifactId)
+  })
+  // get scm revisionId
+  .then(result => {
+    if (result.length === 0) {
+      log.debug('getExecutionsByArtifactId: cannot find executions', doc)
+    } else {
+      try {
+        doc.revisionId = result.inputs[0].revisionId
+        log.trace('saivng revisionId', doc)
+        return pipelineClient.getInputs(doc.pipelineId, doc.inputs[0].stageId)
+      } catch (err) {
+        log.debug('getExecutionsByArtifactId: no revisionId found', result, err)
+      }
+    }
+  })
+  .catch(err => {
+    log.error('getExecutionsByArtifactId: error on finding executions', err)
+  })
+  // get scm input
+  .then(result => {
+    if (result.length === 0) {
+      log.error('getInputs: cannot find inputs', result)
+    } else {
+      if (result[0].type === 'scm') {
+        doc.scmInputs = result
+        log.trace('SCM inputs', result)
+      } else {
+        log.debug('getInputs: no scm input found', result)
+      }
+    }
+  })
+  .catch(err => {
+    log.error('getInputs: error on finding prev inputs', err)
+  })
+  // save doc
+  .then(() => {
+    doc.save()
+    .then(saved => {
+      return saved
+    })
+    .catch(err => {
+      log.error('getInputId: Failed to save service map info with input', err)
+      throw err
+    })
+  })
+  .catch(err => {
+    log.error('getInputId: Cannot get input', doc)
     throw err
   })
 }
@@ -48,6 +112,7 @@ module.exports = {
     .then(saved => {
       res.json(saved)
       log.debug('New approval created', saved)
+      getInputs(saved)
     })
     .catch(err => {
       log.error('addApproval: Cannot save approal', err)

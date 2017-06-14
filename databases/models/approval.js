@@ -1,4 +1,5 @@
 let db = require('../../databases')('approval')
+let inputSchema = require('./input-schema')
 
 let schema = db.Schema({
   inputRev: String,
@@ -12,6 +13,10 @@ let schema = db.Schema({
   toolchainId: String,
   toolchainName: String,
   status: String,
+  inputs: [inputSchema],
+  scmInputs: [inputSchema],
+  revisionId: String,
+  scmUrl: String,
   metadata: {
     createdAt: Date,
     updatedAt: Date
