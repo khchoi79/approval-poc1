@@ -125,7 +125,7 @@ module.exports = {
     let approval = new Approval(data)
     approval.save()
     .then(saved => {
-      res.json(saved)
+      res.status(201).json(saved)
       log.debug('New approval created', saved)
       getInputs(saved)
     })
