@@ -5,6 +5,7 @@ var approval = require('./approval')
 var deployment = require('./deployment')
 
 router.get('/approvals', approval.getApprovals)
+router.get('/approvals/:pipelineId/stages/:stageId', approval.getApprovals)
 router.get('/approvals/:pipelineId/stages/:stageId/jobs/:jobId/artifacts/:artifactId', approval.getApproval)
 router.get('/approvals/:pipelineId/stages/:stageId/jobs/:jobId/artifacts/:artifactId/status', approval.getApprovalStatus)
 router.post('/approvals/:pipelineId/stages/:stageId/jobs/:jobId/artifacts/:artifactId', approval.addApproval)

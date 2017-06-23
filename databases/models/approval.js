@@ -23,6 +23,7 @@ let schema = db.Schema({
   pipelineName: String,
   toolchainId: String,
   toolchainName: String,
+  approvers: [String],
   status: String,
   inputs: [inputSchema],
   scmInputs: [inputSchema],

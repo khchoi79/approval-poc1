@@ -99,7 +99,12 @@ function getInputs (doc) {
 
 module.exports = {
   getApprovals (req, res) {
-    Approval.find()
+    let params = Object.assign({}, req.params)
+    if (req.query.hasOwnProperty('approver')) {
+      params.approvers = req.query.approver
+    }
+    Approval.find(params)
+    .sort({'toolchainId': 1, 'pipelineId': 1, 'stageId': 1})
     .then(docs => res.json(docs))
     .catch(err => {
       log.error('getApprovals: Cannot get approvals', err)
