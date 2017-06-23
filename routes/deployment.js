@@ -72,8 +72,8 @@ exports.createDeployment = function (req, res) {
 }
 
 exports.getDeployments = function (req, res) {
-  Plan.find()
-  .sort('-number')
+  Plan.find(req.params)
+  .sort('number')
   .then(docs => res.json(docs))
   .catch(err => {
     log.error('getDeployments', err)
