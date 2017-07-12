@@ -140,6 +140,16 @@ try {
   */
 }
 
+exports.getStages = function (req, res) {
+  Service.find()
+  .sort({'toolchainId': 1, 'pipelineId': 1, 'stageId': 1})
+  .then(docs => res.json(docs))
+  .catch(err => {
+    log.error('getStages', err)
+    res.status(500).json({error: err})
+  })
+}
+
 exports.updateNode = function (req, res) {
   log.debug('updateNode', req.params.nodeName, req.body)
   consulClient.updateNodeMeta(req.params.nodeName, req.body)

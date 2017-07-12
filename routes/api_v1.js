@@ -11,6 +11,7 @@ router.get('/approvals/:pipelineId/stages/:stageId/jobs/:jobId/artifacts/:artifa
 router.post('/approvals/:pipelineId/stages/:stageId/jobs/:jobId/artifacts/:artifactId', approval.addApproval)
 router.put('/approvals/:pipelineId/stages/:stageId/jobs/:jobId/artifacts/:artifactId', approval.updateApproval)
 
+router.get('/deployment', deployment.getStages)
 router.get('/deployment/:pipelineId/stages/:stageId/builds', deployment.getDeployments)
 router.post('/deployment/:pipelineId/stages/:stageId/builds', deployment.createDeployment)
 router.get('/deployment/:pipelineId/stages/:stageId/builds/:number/nodes', deployment.getTargetNodes)
