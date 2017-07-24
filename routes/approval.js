@@ -149,6 +149,19 @@ module.exports = {
     .then(result => {
       log.debug('Approval updated', result)
       res.json({'status': 'ok'})
+      if (req.body.status === 'accepted') {
+        Approval.findOne(req.params)
+        .then(doc => {
+          let args = {
+            inputId: doc.inputs[0].id,
+            revisionId: doc.inputRev
+          }
+          log.debug('runStage with', args)
+          // Execute stage and get results
+          log.info('Run')
+          pipelineClient.runStage(req.params.pipelineId, req.params.stageId, args)
+        })
+      }
     })
     .catch(err => {
       log.error('updateApproval: Cannot update approal', err)
