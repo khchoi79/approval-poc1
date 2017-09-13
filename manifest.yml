@@ -2,5 +2,5 @@
 applications:
 - name: approval-tool-api
   routes:
-  - route: approval-tool.mybluemix.net/api
+  - route: approval-tool-khchoi.mybluemix.net/api
   memory:  256M
